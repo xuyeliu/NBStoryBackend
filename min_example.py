@@ -200,9 +200,9 @@ def load_model():
     config['codevocabsize'] = codevocabsize
     config['comvocabsize'] = comvocabsize
     config['astvocabsize'] = astvocabsize
-    print('codevocabsize {}'.format(codevocabsize))
-    print('comvocabsize {}'.format(comvocabsize))
-    print('astvocabsize {}'.format(astvocabsize))
+    # print('codevocabsize {}'.format(codevocabsize))
+    # print('comvocabsize {}'.format(comvocabsize))
+    # print('astvocabsize {}'.format(astvocabsize))
 
     # set sequence lengths
     config['codelen'] = 200

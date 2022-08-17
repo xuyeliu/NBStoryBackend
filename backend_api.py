@@ -177,7 +177,7 @@ all_code_cells = [{"cellID":"c-0", "cellType": "Code", "isChosen": True,
     "source":"log_grid = {'C': np.logspace(-4, 4),'solver': ['liblinear'], 'max_iter': np.arange(100, 2000, 100),'penalty':['l1', 'l2']}\nlog_gscv = GridSearchCV(LogisticRegression(max_iter = 1000, random_state = 7),param_grid=log_grid,cv=5,verbose=True)\nlog_gscv.fit(x_train, y_train)\nlog_tuned_score = log_gscv.score(x_test, y_test)\nlog_tuned_score",
     "outputs": [{"name":"stdout", "text":"FF\nFF\n", "output_type":"stream"}]}
     ]
-get_relevent_cells(all_code_cells)
+# get_relevent_cells(all_code_cells)
 # get_layout(all_code_cells)
 
 

@@ -132,11 +132,7 @@ class HAConvGNN(nn.Module):
         self.attention4 = torch.nn.DataParallel(DotProductAttention(dropout=0.5))
         
     def forward(self, x):
-        print(x[1].shape)
-        print(x[0].shape)
-        print(x[2].shape)
         tde = self.embed_tda(x[0])
-        print(tde.shape)
         se = self.embed_tda(x[2])
         tde = tde.type(torch.FloatTensor)
         se = se.type(torch.FloatTensor)
