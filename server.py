@@ -61,10 +61,9 @@ def test():
 def handshake():
 	return "success"
 
-@app.route('/submit_payload_bullet_point', methods=['POST'])
+@app.route('/submit_payload_bullet_layout', methods=['POST'])
 def submit_payload_bullet_point():
     # get the parameters from the POST request(these would be required as parameters for your main()/Interface function)
-    
     bullet_points = []
     print("access1")
     pipeline = SummarizationPipeline(
@@ -72,9 +71,10 @@ def submit_payload_bullet_point():
     tokenizer=AutoTokenizer.from_pretrained("SEBIS/code_trans_t5_base_code_documentation_generation_python", skip_special_tokens=True),
     device=-1)
     payload_json = request.get_json(force=True)
+    layout = backend_api.get_layout(payload_json)
     print("access")
     for code in payload_json:
-        if code['cellType'] == "code":
+        if code['cellType'] == "Code":
             print(code['source'])
             i = 0
             cell_id = int(code['cellID'].split('-')[-1])
@@ -96,15 +96,22 @@ def submit_payload_bullet_point():
             bp = dict()
             bp['cellID'] = code['cellID']
             bp['bullet_ID'] = 'b-' + str(cell_id) + '-' + str(i)
+            print("code", code['source'])
             bp['bullet'] = pipeline(code['source'])[0]['summary_text'].strip()
+            print("bullet", bp['bullet'])
             bp['type'] = "bullet_point"
             bp['model'] = "code_trans_t5_base"
             bp['weight'] = 9
             bp['isChosen'] = True
             bullet_points.append(bp)
     print(bullet_points)
+
+    final_result = {}
+    final_result['bullets'] = bullet_points
+    print(layout)
+    final_result['layouts'] = layout['layout']
     # parse the payload_json to get your parameters:
-    return jsonify(bullet_points)
+    return jsonify(final_result)
 
 @app.route('/submit_payload_title', methods=['POST'])
 def submit_payload_title():
@@ -115,13 +122,13 @@ def submit_payload_title():
     title_t5 = {}
     for cell in payload_json:
         flag = False
-        if cell['cellType'] == "markdown":
+        if cell['cellType'] == "Markdown":
             cell_list = cell['source'].split("\n")
             for tmp in cell_list:
                 if tmp.find('#') != -1:
                     title_markdown = {}
                     title_markdown['title'] = re_0001_.sub(re_0002, tmp).lower().strip()
-                    title_markdown['type'] = "markdown"
+                    title_markdown['type'] = "Markdown"
                     title_markdown['model'] = "notebook"
                     title_markdown['weight'] = 9
                     title_markdown['isChosen'] = True
@@ -139,7 +146,7 @@ def submit_payload_title():
     res = res.replace("<s>", "")
     res = res.replace("</s>", "")
     title_haconvgnn['title'] = res.strip()
-    title_haconvgnn['type'] = "markdown"
+    title_haconvgnn['type'] = "Markdown"
     title_haconvgnn['model'] = "HAConvGNN"
     title_haconvgnn['weight'] = 9
     title_haconvgnn['isChosen'] = True
@@ -156,7 +163,7 @@ def submit_payload_title():
     )
     t5_title = pipeline("\n".join(code_list))
     title_t5['title'] = t5_title[0]['summary_text']
-    title_t5['type'] = "markdown"
+    title_t5['type'] = "Markdown"
     title_t5['model'] = "T5-Base"
     title_t5['weight'] = 8
     title_t5['isChosen'] = True
@@ -171,11 +178,11 @@ def submit_payload_relevance():
     response = backend_api.get_relevent_cells(payload_json)
     return jsonify(response)
 
-@app.route('/submit_payload_layout', methods=['POST'])
-def submit_payload_layout():
-    payload_json = request.get_json(force=True)
-    res = backend_api.get_layout(payload_json)
-    return jsonify(res)
+# @app.route('/submit_payload_layout', methods=['POST'])
+# def submit_payload_layout():
+#     payload_json = request.get_json(force=True)
+#     res = backend_api.get_layout(payload_json)
+#     return jsonify(res)
 
 if __name__ == "__main__":
 
