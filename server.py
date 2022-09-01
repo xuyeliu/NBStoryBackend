@@ -34,9 +34,23 @@ from transformers import AutoTokenizer, AutoModelWithLMHead, SummarizationPipeli
 
 
 app = Flask(__name__, static_folder="../client/dist", template_folder="../client")
-port = int(os.getenv('PORT', 8080))
+port = int(os.getenv('PORT', 3000))
 CORS(app)
 config, model, asttok, tdatstok, comstok = load_model()
+pipeline_bullet = SummarizationPipeline(
+    model=AutoModelWithLMHead.from_pretrained("SEBIS/code_trans_t5_base_code_documentation_generation_python"),
+    tokenizer=AutoTokenizer.from_pretrained("SEBIS/code_trans_t5_base_code_documentation_generation_python", skip_special_tokens=True),
+    device=-1)
+pipeline_title = SummarizationPipeline(
+        tokenizer = AutoTokenizer.from_pretrained(
+            "t5/",
+            cache_dir="output/",
+            return_dict=True
+        ),
+        model = AutoModelForSeq2SeqLM.from_pretrained(
+            "t5/"),
+            device=-1
+    )
 def re_0002(i):
     # split camel case and remove special characters
     tmp = i.group(0)
@@ -66,10 +80,6 @@ def submit_payload_bullet_point():
     # get the parameters from the POST request(these would be required as parameters for your main()/Interface function)
     bullet_points = []
     print("access1")
-    pipeline = SummarizationPipeline(
-    model=AutoModelWithLMHead.from_pretrained("SEBIS/code_trans_t5_base_code_documentation_generation_python"),
-    tokenizer=AutoTokenizer.from_pretrained("SEBIS/code_trans_t5_base_code_documentation_generation_python", skip_special_tokens=True),
-    device=-1)
     payload_json = request.get_json(force=True)
     layout = backend_api.get_layout(payload_json)
     print("access")
@@ -97,7 +107,7 @@ def submit_payload_bullet_point():
             bp['cellID'] = code['cellID']
             bp['bullet_ID'] = 'b-' + str(cell_id) + '-' + str(i)
             print("code", code['source'])
-            bp['bullet'] = pipeline(code['source'])[0]['summary_text'].strip()
+            bp['bullet'] = pipeline_bullet(code['source'])[0]['summary_text'].strip()
             print("bullet", bp['bullet'])
             bp['type'] = "bullet_point"
             bp['model'] = "code_trans_t5_base"
@@ -151,17 +161,7 @@ def submit_payload_title():
     title_haconvgnn['weight'] = 9
     title_haconvgnn['isChosen'] = True
     title_list.append(title_haconvgnn)
-    pipeline = SummarizationPipeline(
-        tokenizer = AutoTokenizer.from_pretrained(
-            "t5/",
-            cache_dir="output/",
-            return_dict=True
-        ),
-        model = AutoModelForSeq2SeqLM.from_pretrained(
-            "t5/"),
-            device=-1
-    )
-    t5_title = pipeline("\n".join(code_list))
+    t5_title = pipeline_title("\n".join(code_list))
     title_t5['title'] = t5_title[0]['summary_text']
     title_t5['type'] = "Markdown"
     title_t5['model'] = "T5-Base"
